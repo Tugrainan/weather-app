@@ -19,9 +19,15 @@ import com.kampplus.hava.core.ui.text.UiText
 import com.kampplus.hava.core.ui.theme.HavaTheme
 import com.kampplus.hava.feature.weather.presentation.model.CityWeatherUiModel
 import com.kampplus.hava.feature.weather.presentation.model.temperatureColor
-
+import androidx.compose.material3.TextButton
 @Composable
-fun CityWeatherCard(item: CityWeatherUiModel, onClick: () -> Unit, modifier: Modifier = Modifier) {
+fun CityWeatherCard(
+    item: CityWeatherUiModel,
+    isFavorite: Boolean,
+    onClick: () -> Unit,
+    onFavoriteClick: () -> Unit,
+    modifier: Modifier = Modifier
+) {
     Card(onClick = onClick, modifier = modifier.fillMaxWidth()) {
         Row(
             modifier = Modifier.padding(12.dp),
@@ -48,6 +54,13 @@ fun CityWeatherCard(item: CityWeatherUiModel, onClick: () -> Unit, modifier: Mod
                     style = MaterialTheme.typography.bodyMedium
                 )
             }
+            TextButton(
+                onClick = onFavoriteClick
+            ) {
+                Text(
+                    text = if (isFavorite) "★" else "☆"
+                )
+            }
         }
     }
 }
@@ -66,7 +79,9 @@ private fun CityWeatherCardPreview() {
                 conditionEmoji = "☀️",
                 conditionLabel = UiText.Dynamic("Açık")
             ),
-            onClick = {}
+            isFavorite = true,
+            onClick = {},
+            onFavoriteClick = {}
         )
     }
 }

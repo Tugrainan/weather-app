@@ -1,5 +1,6 @@
 package com.kampplus.hava.feature.weather.presentation.detail
 
+import androidx.compose.material3.TextButton
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -44,10 +45,12 @@ import com.kampplus.hava.feature.weather.presentation.model.temperatureColor
 @Composable
 fun ForecastDetailScreen(
     uiState: UiState<ForecastUiModel>,
+    isFavorite: Boolean,
+    onFavoriteClick: () -> Unit,
     onBack: () -> Unit,
     onShare: (ForecastUiModel) -> Unit,
     modifier: Modifier = Modifier
-) {
+){
     Scaffold(
         modifier = modifier,
         topBar = {
@@ -60,7 +63,20 @@ fun ForecastDetailScreen(
                 },
                 actions = {
                     if (uiState is UiState.Success) {
-                        ShareButton(onClick = { onShare(uiState.data) })
+
+                        TextButton(
+                            onClick = onFavoriteClick
+                        ) {
+                            Text(
+                                text = if (isFavorite) "★" else "☆"
+                            )
+                        }
+
+                        ShareButton(
+                            onClick = {
+                                onShare(uiState.data)
+                            }
+                        )
                     }
                 }
             )
@@ -170,6 +186,9 @@ private fun ForecastDetailScreenPreview() {
                     daily = List(7) { DailyUiModel(UiText.Dynamic("Cuma"), "⛅", "14°", "24°", "%10") }
                 )
             ),
+            isFavorite = true,
+            onFavoriteClick = {},
+
             onBack = {},
             onShare = {}
         )

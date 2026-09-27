@@ -9,11 +9,22 @@ import com.kampplus.hava.feature.weather.domain.model.City
 
 /** ViewModel'i ekrana bağlayan katman. Ekranın kendisi ([CityListScreen]) stateless'tır. */
 @Composable
-fun CityListRoute(onCityClick: (City) -> Unit, modifier: Modifier = Modifier, viewModel: CityListViewModel = hiltViewModel()) {
+fun CityListRoute(
+    onCityClick: (City) -> Unit,
+    favoriteCityIds: Set<Long>,
+    onFavoriteToggle: (Long) -> Unit,
+    modifier: Modifier = Modifier,
+    viewModel: CityListViewModel = hiltViewModel()
+) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+
     CityListScreen(
         uiState = uiState,
-        onCityClick = { cityId -> viewModel.findCity(cityId)?.let(onCityClick) },
+        onCityClick = { cityId ->
+            viewModel.findCity(cityId)?.let(onCityClick)
+        },
+        favoriteCityIds = favoriteCityIds,
+        onFavoriteToggle = onFavoriteToggle,
         modifier = modifier
     )
 }
