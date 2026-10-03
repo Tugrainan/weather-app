@@ -21,7 +21,16 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import com.kampplus.hava.feature.weather.domain.model.CityWeather
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.onStart
+import kotlinx.coroutines.flow.update
 
+
+@OptIn(ExperimentalCoroutinesApi::class)
 @HiltViewModel
 class CityListViewModel @Inject constructor(
     getCityWeathers: GetCityWeathersUseCase,
@@ -32,22 +41,52 @@ class CityListViewModel @Inject constructor(
 
     /** Detaya giderken ve favori eklerken şehrin tamamına ihtiyaç var; son yüklenen liste burada tutulur. */
     private var loadedCities: Map<Long, City> = emptyMap()
+    private val reloadTrigger = MutableStateFlow(0)
+
+    private val results = reloadTrigger.flatMapLatest {
+        getCityWeathers()
+            .onEach { result ->
+                if (result is AppResult.Success) {
+                    loadedCities = result.data.associate {
+                        it.city.id to it.city
+                    }
+                }
+            }
+            .map<AppResult<List<CityWeather>>, AppResult<List<CityWeather>>?> {
+                it
+            }
+            .onStart {
+                emit(null)
+            }
+    }
 
     val uiState: StateFlow<UiState<List<CityWeatherUiModel>>> = combine(
-        getCityWeathers().onEach { result ->
-            if (result is AppResult.Success) loadedCities = result.data.associate { it.city.id to it.city }
-        },
+        results,
         observeFavoriteCityIds()
     ) { result, favoriteIds ->
+
         when (result) {
+
+            null -> UiState.Loading
+
             is AppResult.Success ->
                 if (result.data.isEmpty()) {
                     UiState.Empty
                 } else {
-                    UiState.Success(result.data.map { uiMapper.toListItem(it, isFavorite = it.city.id in favoriteIds) })
+                    UiState.Success(
+                        result.data.map {
+                            uiMapper.toListItem(
+                                it,
+                                isFavorite = it.city.id in favoriteIds
+                            )
+                        }
+                    )
                 }
 
-            is AppResult.Failure -> UiState.Error(UiText.Resource(R.string.error_generic))
+            is AppResult.Failure ->
+                UiState.Error(
+                    UiText.Resource(R.string.error_generic)
+                )
         }
     }.stateIn(
         scope = viewModelScope,
@@ -55,6 +94,9 @@ class CityListViewModel @Inject constructor(
         initialValue = UiState.Loading
     )
 
+    fun onRetry() {
+        reloadTrigger.update { it + 1 }
+    }
     fun findCity(cityId: Long): City? = loadedCities[cityId]
 
     fun onToggleFavorite(cityId: Long) {

@@ -1,5 +1,7 @@
 package com.kampplus.hava.feature.weather.presentation.list
 
+import androidx.compose.foundation.layout.Column
+import androidx.compose.material3.Button
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
@@ -31,6 +33,7 @@ fun CityListScreen(
     uiState: UiState<List<CityWeatherUiModel>>,
     onCityClick: (Long) -> Unit,
     onFavoriteClick: (Long) -> Unit,
+    onRetry: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     Scaffold(
@@ -46,8 +49,22 @@ fun CityListScreen(
             when (uiState) {
                 UiState.Loading -> CircularProgressIndicator()
                 UiState.Empty -> Text(stringResource(R.string.empty_generic))
-                is UiState.Error -> Text(uiState.message.asString())
-                is UiState.Success -> CityList(items = uiState.data, onCityClick = onCityClick, onFavoriteClick = onFavoriteClick)
+                is UiState.Error -> {
+                    Column(
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.spacedBy(12.dp)
+                    ) {
+                        Text(
+                            text = uiState.message.asString()
+                        )
+
+                        Button(
+                            onClick = onRetry
+                        ) {
+                            Text("Tekrar Dene")
+                        }
+                    }
+                }                is UiState.Success -> CityList(items = uiState.data, onCityClick = onCityClick, onFavoriteClick = onFavoriteClick)
             }
         }
     }
@@ -94,7 +111,8 @@ private fun CityListScreenPreview() {
                 }
             ),
             onCityClick = {},
-            onFavoriteClick = {}
+            onFavoriteClick = {},
+            onRetry = {}
         )
     }
 }

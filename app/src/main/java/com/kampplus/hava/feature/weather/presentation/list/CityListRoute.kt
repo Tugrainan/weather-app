@@ -13,8 +13,11 @@ fun CityListRoute(onCityClick: (City) -> Unit, modifier: Modifier = Modifier, vi
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     CityListScreen(
         uiState = uiState,
-        onCityClick = { cityId -> viewModel.findCity(cityId)?.let(onCityClick) },
+        onCityClick = { cityId ->
+            viewModel.findCity(cityId)?.let(onCityClick)
+        },
         onFavoriteClick = viewModel::onToggleFavorite,
+        onRetry = viewModel::onRetry,
         modifier = modifier
     )
 }
